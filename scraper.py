@@ -161,7 +161,7 @@ class PartDetails:
         return response['pp']
 
     def fetch_images(self, part_number):
-        print('\r..', end='')
+        # print('\r..', end='')
         response = requests.get(base_url
                                 + 'image/getallimages'
                                   '?partNum=' + part_number
@@ -177,23 +177,62 @@ class PartDetails:
         return image_list
 
     def extract_competitor_oe(self):
+        make_dir('output/parts/search_query')
         make_dir('output/parts/competitors')
         query_list = []
-        for i in range(0, 999):
-            search_query = '{0:03}'.format(i)
+        for search_query in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+                             's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
             query_list.append(search_query)
 
-        pool = Pool(48)
-        pool.map(self.fetch_and_save_competitor_oe, query_list)
+        pool = Pool(4)
+        # pool.map(self.fetch_and_save_search_query, query_list)
+        # pool.map(self.fetch_and_save_competitor_oe, query_list)
+        self.fetch_and_save_competitor_oe('n')
+
+
+    def fetch_and_save_search_query(self, search_query):
+        output_file = 'output/parts/search_query/' + search_query + '.json'
+        if os.path.exists(output_file):
+            return
+
+        response = requests.get('https://ecatalog.smpcorp.com/V2/FS/api/Vehicle/autosearch'
+                                '?func=PART'
+                                '&filter=' + search_query +
+                                '&count=100000000'
+                                '&searchType=X'
+                                '&site=FS')
+        response = json.loads(response.text)
+        print(search_query, ':', len(response))
+        save_json(response, output_file)
+
+
+    def extract_competitor_details(self):
+        search_query_3 = []
+        with os.scandir('output/parts/search_query') as it:
+            for entry in it:
+                if entry.name.endswith('.json'):
+                    data_file = load_json(entry.path)
+                    for item in data_file:
+                        query = item.split(' - ')[0][0:3]
+                        search_query_3.append(query)
+                        print('\r', entry.name, end='')
+
+        search_query_3 = list(dict.fromkeys(search_query_3))
+        print(len(search_query_3))
+        save_json(search_query_3, 'output/parts/search_query/_sub_3.json')
+
+        # search_query_3 = load_json('output/parts/search_query/_sub_3.json')
+
 
     def fetch_and_save_competitor_oe(self, search_query):
         output_file = 'output/parts/competitors/' + search_query + '.json'
         if os.path.exists(output_file):
             return
 
+        print('Search', search_query)
         response = requests.get(base_url
                                 + 'part/partsearch'
-                                  '?filter=' + search_query
+                                  '?filter=' + search_query + '  '
                                 + '&filterType=s'
                                   '&searchType=x'
                                   '&imageSize=80'
@@ -209,4 +248,17 @@ class PartDetails:
                                   '&attrValueFilter=-All-')
         response = json.loads(response.text)
         print(search_query, ':', len(response))
+        for item in response:
+            item.pop('brand')
+            item.pop('brandLink')
+            item.pop('maxRows')
+            item.pop('partComment')
+            item.pop('rowId')
+            item.pop('categoryName_en')
+            item.pop('imageUrl')
+            item.pop('vehicleId')
+            item.pop('site')
+            item.pop('webBase')
+            item.pop('webColumn_Id')
         save_json(response, output_file)
+

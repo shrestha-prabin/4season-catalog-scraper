@@ -146,6 +146,9 @@ def prepare_competitor_data(part_number):
     output_data = []
     output_path = 'output/parts/competitors_merged/' + part_number + '.json'
 
+    if os.path.exists(output_path):
+        return
+
     with os.scandir('output/parts/competitors') as it:
         for index, entry in enumerate(it):
             # print('\r', index, end='')
@@ -211,21 +214,37 @@ if __name__ == '__main__':
     pool = Pool(10)
     pool.map(export, make_list)
 
-    # for item in make_list:
-    #     export(item)
 
-    # part_list = []
-    #
-    # with os.scandir('output/parts') as it:
-    #     for entry in it:
-    #         if entry.name.endswith('.json'):
-    #             part_number = entry.name.replace('.json', '')
-    #             output_path = 'output/parts/competitors_merged/' + part_number + '.json'
-    #             if os.path.exists(output_path):
-    #                 continue
-    #             part_list.append(part_number)
-    #
-    # pool = Pool(50)
-    # pool.map(prepare_competitor_data, part_list)
+    for item in make_list:
+        export(item)
 
-    # export_competitor_data()
+
+    # Get Competitor Data
+    """
+    part_list = []
+    with os.scandir('output/parts/competitors') as it:
+        for index, entry in enumerate(it):
+            if entry.name.endswith('.json'):
+                data_file = load_json(entry.path)
+                for data_item in data_file:
+                    if data_item['basePart'] not in part_list:
+                        part_list.append(data_item['basePart'])
+
+                        print('\r', index, len(part_list), end='')
+
+    save_json(part_list, 'output/parts/all_part_list.json')
+
+    with os.scandir('output/parts') as it:
+        for entry in it:
+            if entry.name.endswith('.json'):
+                part_number = entry.name.replace('.json', '')
+                output_path = 'output/parts/competitors_merged/' + part_number + '.json'
+                if os.path.exists(output_path):
+                    continue
+                part_list.append(part_number)
+
+    pool = Pool(50)
+    pool.map(prepare_competitor_data, part_list)
+
+    export_competitor_data()
+    """

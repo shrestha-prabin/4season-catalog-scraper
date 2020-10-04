@@ -21,22 +21,26 @@ year_list = [
 ]
 
 if __name__ == '__main__':
-    scraper = PartList()
+
+    # scraper = PartList()
     # scraper.extract_part_list('2017')
 
     """
     1
     """
-    pool = Pool(50)
-    pool.map(scraper.extract_part_list, year_list)
+    # pool = Pool(50)
+    # pool.map(scraper.extract_part_list, year_list)
 
     """
     2
     """
     details_scraper = PartDetails()
-    # details_scraper.extract_part_details()
+    details_scraper.extract_part_details()
 
     """
     3
     """
     # details_scraper.extract_competitor_oe()
+    # -- details_scraper.extract_competitor_details()
+
+
